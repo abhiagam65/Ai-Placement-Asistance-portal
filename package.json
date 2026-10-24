@@ -1,0 +1,12 @@
+{
+  "name": "ai-placement-portal-monorepo",
+  "version": "1.0.0",
+  "description": "AI-Powered Placement Preparation & Career Guidance Portal for Final-Year Computer Engineering",
+  "scripts": {
+    "test:backend": "cd backend && npm test",
+    "seed:backend": "cd backend && npm run seed",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}

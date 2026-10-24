@@ -1,0 +1,100 @@
+# ==============================
+# Dependencies
+# ==============================
+node_modules/
+**/node_modules/
+
+# ==============================
+# Environment variables & secrets
+# ==============================
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# ==============================
+# Build output
+# ==============================
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+coverage/
+
+# ==============================
+# Logs
+# ==============================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ==============================
+# Cache & temporary files
+# ==============================
+.cache/
+.parcel-cache/
+.vite/
+tmp/
+temp/
+*.tmp
+
+# ==============================
+# Frontend / Framework files
+# ==============================
+.vercel/
+.netlify/
+.next/
+
+# ==============================
+# Backend files
+# ==============================
+uploads/
+*.pid
+*.seed
+
+# ==============================
+# Testing
+# ==============================
+.nyc_output/
+playwright-report/
+test-results/
+
+# ==============================
+# Operating system files
+# ==============================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ==============================
+# Editors & IDEs
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==============================
+# TypeScript
+# ==============================
+*.tsbuildinfo
+
+# ==============================
+# Local environment files
+# ==============================
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================
+# Optional local database files
+# Uncomment if these are generated locally
+# ==============================
+# *.sqlite
+# *.sqlite3
+# *.db
