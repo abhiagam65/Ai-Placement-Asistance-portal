@@ -182,3 +182,4 @@ npm test
 - **Honest AI Disclosure**: Real-time labeling of whether analysis was generated via live LLM or deterministic fallback algorithms.
 "# Ai-Placement-Asistance-portal" 
 "# Ai-Placement-Asistance-portal" 
+# Ai-Placement-Asistance-portal
