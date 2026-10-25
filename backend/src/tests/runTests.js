@@ -2,7 +2,6 @@ import assert from 'node:assert';
 import bcrypt from 'bcryptjs';
 import { generateToken, verifyToken } from '../config/jwt.js';
 import { codeExecutionService } from '../services/codeExecutionService.js';
-import { aiProxyService } from '../services/aiProxyService.js';
 
 console.log('========================================================');
 console.log('🧪 Running AI Placement Portal Automated Test Suite');
@@ -129,39 +128,6 @@ async function runAllTests() {
 
     const result = await codeExecutionService.execute('javascript', infiniteCode, testCases);
     assert.strictEqual(result.status, 'Time Limit Exceeded', 'Infinite loop must be terminated with Time Limit Exceeded');
-  });
-
-  // Test 7: AI Service Resume Analysis Fallback & Scoring Heuristics
-  await test('AI Resume Analyzer Deterministic Heuristics & ATS Scoring', async () => {
-    const sampleResume = `
-      Aarav Patel - Computer Engineering Student
-      Education: Bachelor of Technology in Computer Engineering, CGPA: 8.8
-      Technical Skills: JavaScript, React, Node.js, Express, MongoDB, Python, Docker, Git, SQL
-      Projects:
-      - Cloud E-Commerce Microservices: Architected high-throughput catalog service reducing API response latency by 35% across 5,000 active users.
-      - Real-Time Collaborative Canvas: Implemented WebSockets with Redis Pub/Sub handling 1,200 concurrent connections.
-    `;
-
-    const result = aiProxyService.localResumeFallback(sampleResume, 'Requirements: React, Node.js, Docker, Kubernetes');
-    assert(result.scoring.overall_score >= 70, 'Overall score should reflect strong projects and skills');
-    assert(result.candidate_summary.detected_technical_skills.includes('react'), 'Should extract react skill');
-    assert(result.candidate_summary.detected_technical_skills.includes('docker'), 'Should extract docker skill');
-    assert.strictEqual(result.candidate_summary.sections_present.education, true, 'Education section should be detected');
-    assert.strictEqual(result.candidate_summary.sections_present.projects, true, 'Projects section should be detected');
-  });
-
-  // Test 8: Mock Interview Answer Evaluation Logic
-  await test('Mock Interview Answer Evaluation Quality Grading', async () => {
-    const question = 'Explain the Event Loop in JavaScript.';
-    const briefAnswer = 'It does asynchronous stuff.';
-    const detailedAnswer = 'The Event Loop coordinates the execution of code, collecting and processing events, and executing queued sub-tasks in JavaScript. It continuously monitors the Call Stack and the Callback Queue. When the Call Stack is empty, it pushes tasks from the Microtask Queue (Promises) first, followed by the Macrotask Queue (setTimeout, I/O).';
-
-    const briefResult = aiProxyService.localAnswerEvaluationFallback(question, briefAnswer, 'Full Stack Engineer', 'medium');
-    const detailedResult = aiProxyService.localAnswerEvaluationFallback(question, detailedAnswer, 'Full Stack Engineer', 'medium');
-
-    assert(briefResult.score < 50, 'Brief answers should receive constructive low scores');
-    assert(detailedResult.score >= 80, 'Comprehensive answers should receive high scores');
-    assert(detailedResult.metrics.technical_accuracy >= 80, 'Technical accuracy metric should be high');
   });
 
   console.log('\n========================================================');

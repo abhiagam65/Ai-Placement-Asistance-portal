@@ -54,7 +54,7 @@ export const getStudentDashboardStats = async (req, res, next) => {
     // Coding Solved: 25% (normalized out of 15 target problems)
     // Mock Interview: 20%
     // Profile completeness & CGPA: 10%
-    const resumeScore = latestResume?.scoring?.overallScore || 65;
+    const resumeScore = latestResume?.scoring?.overallScore ?? 65;
     const codingScore = Math.min(100, Math.round((uniqueSolvedProblems / 12) * 100));
     const quizComponent = avgQuizScore > 0 ? avgQuizScore : 60;
     const interviewComponent = avgInterviewScore > 0 ? avgInterviewScore : 65;

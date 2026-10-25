@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const interviewQuestionSchema = new mongoose.Schema({
-  questionIndex: Number,
+  questionIndex: { type: Number, required: true, min: 0, max: 9, validate: Number.isInteger },
   question: { type: String, required: true },
   category: String,
   expectedFocusPoints: [String],
@@ -29,6 +29,9 @@ const interviewSessionSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 120,
     default: 'Full Stack Engineer'
   },
   interviewType: {
@@ -44,14 +47,22 @@ const interviewSessionSchema = new mongoose.Schema({
   questions: [interviewQuestionSchema],
   currentQuestionIndex: {
     type: Number,
+    min: 0,
+    max: 9,
+    validate: Number.isInteger,
     default: 0
   },
   totalQuestions: {
     type: Number,
+    min: 1,
+    max: 10,
+    validate: Number.isInteger,
     default: 5
   },
   overallScore: {
     type: Number,
+    min: 0,
+    max: 100,
     default: 0
   },
   status: {
@@ -61,11 +72,12 @@ const interviewSessionSchema = new mongoose.Schema({
   },
   provider: {
     type: String,
-    default: 'deterministic-engine'
+    required: true
   },
   completedAt: Date
 }, {
-  timestamps: true
+  timestamps: true,
+  optimisticConcurrency: true
 });
 
 export default mongoose.model('InterviewSession', interviewSessionSchema);

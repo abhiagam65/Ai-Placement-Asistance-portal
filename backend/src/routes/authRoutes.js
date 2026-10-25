@@ -9,5 +9,8 @@ router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
 router.get('/me', authenticate, getMe);
 router.put('/profile', authenticate, updateProfile);
+router.get('/hii', (req, res) => {
+    res.send("hii")
+})
 
 export default router;
