@@ -23,7 +23,7 @@ import adminRoutes from './routes/adminRoutes.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB with resilient in-memory fallback
 await connectDB();

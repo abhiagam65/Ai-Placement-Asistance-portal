@@ -19,11 +19,12 @@ graph TD
     API["REST Gateway (Node.js 24 + Express 4)"]
     DB[(MongoDB Atlas / In-Memory MongoDB Fallback)]
     AIService["AI Microservice (Python 3.14 + Flask)"]
-    ExternalLLM["Google Gemini 1.5 Flash / OpenAI API"]
+    ExternalLLM["Google Gemini API"]
     LocalFallback["Deterministic Heuristic NLP Engine"]
 
     UserClient -->|HTTP / JSON / JWT| API
     API -->|Mongoose ODM| DB
+    API -->|Live resume analysis and mock interviews| ExternalLLM
     API -->|Proxy AI Requests| AIService
     AIService -->|Live LLM Inference| ExternalLLM
     AIService -->|Graceful Offline Fallback| LocalFallback
@@ -55,8 +56,8 @@ The database is pre-seeded with realistic student records, company listings, act
 
 ### 1. Student Modules
 1. **Executive Dashboard**: Real-time Preparation Readiness Index (0-100% radial gauge), academic stats (CGPA 8.75), upcoming placement drives countdown, recommended preparation tasks, and live activity timeline.
-2. **AI Resume Analyzer**: Supports drag-and-drop PDF/DOCX/TXT file uploads (up to 5MB), extracts candidate technical and soft skills, verifies section completeness, benchmarks against a user-provided target Job Description, and generates actionable improvements with an honest, transparent ATS scoring breakdown.
-3. **AI Mock Interview Room**: Step-by-step technical and HR interview scenarios across Frontend, Backend, Full Stack, and Data Science. Accepts typed answers or microphone speech dictation (Web Speech API), gives real-time grading on technical accuracy, clarity, and completeness, and provides model ideal answers.
+2. **AI Resume Analyzer**: Click or drop a text-based PDF or UTF-8 TXT resume (up to 5MB), or paste resume text. Gemini reviews the actual content and returns strengths, prioritized issues with evidence, section feedback, truthful bullet rewrites, and an explained score breakdown. Adding a job description enables requirement matching; no match score is generated without one. Reports are saved for later review, and the analysis screen uses smooth animations and rotating short tech quotes with reduced-motion support.
+3. **AI Mock Interview Room**: Live Gemini questions tailored to a target engineering role, technical or HR round, difficulty, and question count (1–10). Accepts typed answers or microphone speech dictation (Web Speech API), evaluates the actual content of each answer, and saves feedback, ideal answers, and a question-by-question result report. Provider failures are shown as errors; interviews do not use fixed questions or offline grading.
 4. **Aptitude Practice Engine**: Timed speed drills across Quantitative Aptitude, Logical Reasoning, and Verbal Ability with real-time countdown timer, radio options, automatic scoring, and detailed step-by-step mathematical explanations.
 5. **Coding Sandbox (DSA)**: Curated placement challenge catalog (Easy, Medium, Hard). Split-view workspace featuring problem description, constraints, hints, code editor supporting JavaScript, Python, C++, and Java, and an isolated timeout sandbox runner (1500ms safety limit).
 6. **AI Career Guidance**: Dynamic 12-week strategic preparation milestones, skill-gap analysis, recommended capstone projects, and curated learning resources.
@@ -105,7 +106,7 @@ cd backend
 npm install
 npm start
 ```
-> Running on: `http://localhost:5000`  
+> Running on: `http://localhost:3000`
 > *(If local MongoDB is not running, the backend seamlessly launches an in-memory MongoDB instance).*
 
 #### Terminal 3: React Vite Frontend
@@ -122,14 +123,22 @@ npm run dev
 
 ### Backend (`backend/.env`)
 ```env
-PORT=5000
+PORT=3000
 NODE_ENV=development
 MONGO_URI=mongodb://127.0.0.1:27017/placement_portal
 JWT_SECRET=ai_placement_portal_super_secret_jwt_key_2026
 JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 AI_SERVICE_URL=http://127.0.0.1:5001
+GEMINI_API_KEY=your_google_ai_studio_key
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
+
+Resume analysis and mock interviews call Gemini directly from the Node backend, so these features do not require the Python service. Keep `GEMINI_API_KEY` only in the ignored `backend/.env` file and restart the backend after changing it. Never put the key in frontend code or a `VITE_*` variable. Create a key in [Google AI Studio](https://aistudio.google.com/api-keys); the API project must have access and available quota for the configured model.
+
+Resume uploads accept PDF and UTF-8 TXT files up to 5 MB, or 50–30,000 characters of pasted text. The optional job description supports up to 15,000 characters. Scanned/image-only PDFs require OCR or pasted text. The overall resume score is the mean of four AI-assessed dimensions: text readability, demonstrated skills, evidenced impact, and relevant completeness. This is an assessment of extracted text, not a commercial ATS test or visual PDF-layout inspection. Reports do not change profile skills automatically. Provider failures preserve the input for retry and never substitute a canned report.
+
+The interviewer generates the requested question set once, then grades each submitted answer against that question's private assessment rubric. The answer score weights relevance/accuracy at 50%, depth/completeness at 30%, and clarity at 20%. The final result is the mean of the answered question scores. For HR rounds, relevance and behavioral evidence replace technical accuracy. Feedback and complete results are available in interview history. If Gemini times out, rejects the key, or runs out of quota, the app keeps the current answer available for retry instead of substituting dummy results.
 
 ### AI Service (`ai-service/.env`)
 ```env
@@ -144,7 +153,7 @@ OPENAI_API_KEY=
 
 ## 🧪 Automated Testing Verification
 
-The backend includes automated tests covering authentication, password hashing, JWT generation, role-based authorization, secure sandbox timeout isolation, and AI heuristic scoring.
+The backend includes automated checks for authentication, sandbox timeouts, real PDF extraction, upload validation, structured AI reports, optional JD matching, interview progression, ownership, and provider failures.
 
 Run the test suite:
 ```powershell
@@ -152,25 +161,6 @@ cd backend
 npm test
 ```
 
-### Test Results Summary:
-```
-========================================================
-🧪 Running AI Placement Portal Automated Test Suite
-========================================================
-
-  ✅ PASS: Password Hashing & Verification via bcrypt
-  ✅ PASS: JWT Token Signing and Decoding
-  ✅ PASS: Role-Based Authorization Enforcement
-  ✅ PASS: Secure Sandbox Code Runner: Correct Two Sum solution
-  ✅ PASS: Secure Sandbox Code Runner: Incorrect Logic Handling
-  ✅ PASS: Secure Sandbox Execution: Infinite Loop Timeout Guard
-  ✅ PASS: AI Resume Analyzer Deterministic Heuristics & ATS Scoring
-  ✅ PASS: Mock Interview Answer Evaluation Quality Grading
-
-========================================================
-📊 Test Summary: 8 Passed, 0 Failed
-========================================================
-```
 
 ---
 
@@ -179,7 +169,7 @@ npm test
 - **RBAC**: Multi-level JWT bearer token validation enforcing strict student and administrator separation.
 - **Sandbox Isolation**: Student DSA code is evaluated within Node's isolated `vm` context with strict timeouts (1500ms) and nullified OS globals (`process`, `fs`, `child_process`, `eval` restricted).
 - **File Upload Protection**: In-memory Multer buffer scanning with mime-type and 5MB size limits.
-- **Honest AI Disclosure**: Real-time labeling of whether analysis was generated via live LLM or deterministic fallback algorithms.
+- **AI Reports**: Resume analysis and mock interviews use Gemini with validated structured responses. Provider failures return clear errors and preserve inputs for retry.
 "# Ai-Placement-Asistance-portal" 
 "# Ai-Placement-Asistance-portal" 
 # Ai-Placement-Asistance-portal
